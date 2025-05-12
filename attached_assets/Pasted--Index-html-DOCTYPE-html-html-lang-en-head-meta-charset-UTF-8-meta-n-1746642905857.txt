@@ -1,0 +1,351 @@
+
+
+Index.html: 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Skincare Affiliate Content Bot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.5;
+      margin: 40px;
+      background-color: #fafafa;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    #trending-products button {
+      margin: 5px;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      background-color: #e7f0ff;
+      border: 1px solid #b3d4fc;
+      border-radius: 4px;
+    }
+    .copy-btn {
+      margin-top: 6px;
+      margin-bottom: 18px;
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+      background-color: #d4edda;
+      color: #155724;
+      border-radius: 4px;
+    }
+    .copy-btn:hover {
+      background-color: #c3e6cb;
+    }
+    pre {
+      white-space: pre-wrap;
+      background: #f8f9fa;
+      padding: 12px;
+      border-left: 5px solid #007bff;
+      border-radius: 4px;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    button[type="submit"] {
+      margin-top: 20px;
+      padding: 10px 18px;
+      font-size: 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    #results-container {
+      display: none;
+      margin-top: 30px;
+    }
+    #results h2 {
+      margin-bottom: 16px;
+      font-size: 20px;
+    }
+    .section-title {
+      font-weight: bold;
+      margin-top: 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧴 Skincare Affiliate Content Generator</h1>
+
+  <h2>🔥 Trending Skincare Products</h2>
+  <div id="trending-products"></div>
+  <br />
+
+  <form id="product-form">
+    <label for="product-input">Amazon Product Name or URL:</label>
+    <input type="text" id="product-input" required placeholder="e.g. CeraVe Moisturizing Cream" />
+
+    <label for="affiliate-input">Amazon Affiliate Link (optional):</label>
+    <input type="text" id="affiliate-input" placeholder="e.g. https://amzn.to/xyz123" />
+
+    <label for="tone-select">Content Tone:</label>
+    <select id="tone-select">
+      <option value="">Default</option>
+      <option value="fun">Fun</option>
+      <option value="influencer">Influencer</option>
+      <option value="clinical">Clinical</option>
+      <option value="snarky">Snarky</option>
+    </select>
+
+    <label for="template-select">Content Template Type:</label>
+    <select id="template-select">
+      <option value="original">Original (Full Content Output)</option>
+      <option value="drySkinList">Top 5 for Dry Skin</option>
+      <option value="routineExample">Routine Example with Product</option>
+      <option value="comparison">X vs Y Product Comparison</option>
+      <option value="influencerCaption">Influencer Caption</option>
+      <option value="prosCons">Pros/Cons Breakdown</option>
+      <option value="random">Surprise Me!</option>
+    </select>
+
+    <button type="submit">Generate Content</button>
+  </form>
+
+  <div id="results-container">
+    <div id="results"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
+
+script.js: 
+// Load trending products
+fetch('/dynamic-trending')
+  .then(res => res.json())
+  .then(data => {
+    const container = document.getElementById('trending-products');
+    container.innerHTML = '';
+    (data.products || []).forEach(product => {
+      const btn = document.createElement('button');
+      btn.innerText = product;
+      btn.onclick = () => {
+        document.getElementById('product-input').value = product;
+        window.scrollTo({ top: document.getElementById('product-form').offsetTop, behavior: 'smooth' });
+      };
+      container.appendChild(btn);
+    });
+  })
+  .catch(err => {
+    console.error('❌ Failed to load trending products:', err);
+  });
+
+console.log("✅ script.js loaded");
+
+const form = document.getElementById('product-form');
+const resultsContainer = document.getElementById('results-container');
+const resultsDiv = document.getElementById('results');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  resultsDiv.innerHTML = "⏳ Generating content, please wait...";
+  resultsContainer.style.display = 'block';
+
+  const product = document.getElementById('product-input').value;
+  const affiliate = document.getElementById('affiliate-input').value;
+  const tone = document.getElementById('tone-select').value;
+  const templateType = document.getElementById('template-select').value;
+
+  try {
+    const res = await fetch('/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product, affiliate, tone, templateType }),
+    });
+
+    const data = await res.json();
+    if (data.error) {
+      resultsDiv.innerHTML = `<p style=\"color: red;\">❌ ${data.error}</p>`;
+    } else {
+      displayResults(data.content);
+    }
+  } catch (err) {
+    console.error("❌ Fetch failed:", err);
+    resultsDiv.innerHTML = `<p style=\"color: red;\">❌ Something went wrong: ${err.message}</p>`;
+  }
+});
+
+function displayResults(content) {
+  const sections = content.split('\n\n');
+  resultsDiv.innerHTML = `<h2>🧠 Generated Content</h2>`;
+  sections.forEach((section, i) => {
+    const id = `section-${i + 1}`;
+    resultsDiv.innerHTML += `
+      <div id=\"${id}\"><pre>${section.trim()}</pre></div>
+      <button class=\"copy-btn\" onclick=\"copyToClipboard('${id}')\">📋 Copy Section</button>
+    `;
+  });
+  resultsDiv.innerHTML += `<button class=\"copy-btn\" onclick=\"copyAll()\">📋 Copy All</button>`;
+}
+
+function copyToClipboard(id) {
+  const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    alert(`✅ Copied section: ${id}`);
+  });
+}
+
+function copyAll() {
+  const text = document.getElementById('results').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    alert("✅ All content copied to clipboard!");
+  });
+}
+
+
+
+index.js: 
+
+const { fetch } = require('undici');
+const express = require('express');
+const path = require('path');
+const OpenAI = require('openai');
+
+const app = express();
+app.use(express.json());
+app.use(express.static('public'));
+
+// Health check
+app.get('/ping', (req, res) => res.send('pong'));
+
+const staticTrendingProducts = [
+  "CeraVe Hydrating Cleanser",
+  "The Ordinary Niacinamide Serum",
+  "COSRX Snail Mucin",
+  "Glow Recipe Watermelon Toner",
+  "La Roche-Posay Toleriane Moisturizer"
+];
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const templates = {
+  drySkinList: (product) => `List the top 5 skincare products for dry skin, ideally similar to or including \"${product}\".`,
+  routineExample: (product) => `Create a simple morning and evening skincare routine that features \"${product}\" as a main step.`,
+  comparison: (product1, product2 = "a similar alternative") => `Compare \"${product1}\" vs \"${product2}\" for someone with combination skin. Include pros and cons.`,
+  influencerCaption: (product) => `Write a viral influencer-style Instagram caption promoting \"${product}\" with emojis and slang.`,
+  prosCons: (product) => `List the pros and cons of using \"${product}\" for sensitive skin.`,
+};
+
+const getRandomTemplateKey = () => {
+  const keys = Object.keys(templates);
+  return keys[Math.floor(Math.random() * keys.length)];
+};
+
+app.get('/dynamic-trending', async (req, res) => {
+  try {
+    const prompt = `List 5 currently trending skincare products (Gen Z + Millennials) on TikTok or Instagram. Format only as plain text list:\n1. Product A\n2. Product B\n...`;
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const text = response.choices?.[0]?.message?.content;
+    const products = text
+      .split('\n')
+      .map(line => line.replace(/^\d+\.\s*/, '').trim())
+      .filter(Boolean);
+
+    if (products.length === 0) throw new Error("Empty product list");
+    res.json({ products });
+  } catch (err) {
+    console.error("\u274C Trending error:", err.message);
+    res.json({ products: staticTrendingProducts });
+  }
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/index.html'));
+});
+
+app.post('/generate', async (req, res) => {
+  try {
+    const { product, affiliate, tone, templateType } = req.body;
+    console.log('\ud83d\udce6 Request:', req.body);
+
+    // Handle special templates
+    if (templateType && templateType !== 'original' && templateType !== 'default') {
+      const chosenTemplate = templateType === 'random' ? getRandomTemplateKey() : templateType;
+      const prompt = templates[chosenTemplate](product);
+
+      const response = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: prompt }],
+      });
+
+      const content = response.choices?.[0]?.message?.content?.trim();
+      if (!content) throw new Error("Template generation failed");
+
+      return res.json({ content: `${chosenTemplate.toUpperCase()} TEMPLATE:\n\n${content}` });
+    }
+
+    // Default or "original" full-suite template logic
+    const productDescPrompt = `Write a short, 1-2 sentence product description for \"${product}\" skincare item.`;
+
+    const descResponse = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [{ role: 'user', content: productDescPrompt }],
+    });
+
+    const description = descResponse.choices?.[0]?.message?.content.trim();
+
+    let prompt = `Write the following skincare content for the product \"${product}\" using a ${tone || 'neutral'} tone. Format with clear bold section headers and no asterisks, no numbering, no markdown — just raw text. Keep it clean for HTML.\n\n1. Demo Script\n2. Problem/Solution Script\n3. Personal Review\n4. 3 Catchy Social Captions\n5. 3 sets of Skincare-Related Hashtags\n6. 5 Bonus Trending Skincare Hashtags\n\n${affiliate?.trim() ? `Include this affiliate link in each section: ${affiliate.trim()}` : ''}`;
+
+    const contentResponse = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const raw = contentResponse.choices?.[0]?.message?.content;
+    if (!raw) throw new Error("OpenAI returned empty content.");
+
+    const cleaned = `Product Description:\n${description}\n\n${raw}`
+      .replace(/\*/g, '')
+      .replace(/^(\d+\.\s*)/gm, '')
+      .trim();
+
+    try {
+      await fetch("https://hook.us2.make.com/beup8lq9w0suq7s4x338b291j1l6e4ua", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product, affiliate, tone, content: cleaned })
+      });
+    } catch (err) {
+      console.error("\ud83d\udd0c Webhook failed:", err.message);
+    }
+
+    res.json({ content: cleaned });
+  } catch (err) {
+    console.error("\u274C Generation error:", err.message);
+    res.status(500).json({ error: "Server error while generating content." });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`\ud83d\ude80 Server running on port ${PORT}`));

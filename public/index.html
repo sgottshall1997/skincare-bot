@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GlowBot Skincare Content Generator</title>
+  <link href="styles.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-base-100 p-4 md:p-8">
+  <div class="max-w-4xl mx-auto">
+    <header class="mb-8">
+      <h1 class="text-4xl md:text-5xl font-bold text-center text-rose-700 leading-tight">
+        GlowBot Skincare Content Generator 💸
+      </h1>
+      <p class="text-center text-lg md:text-xl text-gray-700 mt-3">
+        Generate viral-ready product blurbs, captions, and hashtags in seconds. Ideal for TikTok, Reels, and affiliate marketing.
+      </p>
+    </header>
+
+    <section class="text-center mb-8">
+      <h2 class="text-2xl md:text-3xl font-bold text-rose-700 mb-2">🔥 Trending Skincare Products</h2>
+      <div id="trending-products" class="flex flex-wrap justify-center gap-2 mt-4"></div>
+    </section>
+
+    <div class="text-center my-4">
+      <button id="generate-all-btn" class="btn btn-secondary">⚡ Generate Content for All Trending Products</button>
+    </div>
+
+    <section class="text-center mb-8">
+      <h2 class="text-2xl md:text-3xl font-bold text-rose-700 mb-2 flex items-center justify-center gap-2">
+        🧴 Skincare Content Generator
+      </h2>
+    </section>
+
+    <form id="product-form" class="card bg-white p-6 shadow-sm mb-8">
+      <div class="form-control w-full">
+        <label class="label" for="product-input">
+          <span class="label-text font-medium">Amazon Product Name or URL:</span>
+        </label>
+        <input type="text" id="product-input" required placeholder="e.g. CeraVe Moisturizing Cream" class="input input-bordered w-full border-black" />
+      </div>
+
+      <div class="form-control w-full mt-4">
+        <label class="label" for="affiliate-input">
+          <span class="label-text font-medium">Amazon Affiliate Link (optional):</span>
+        </label>
+        <input type="text" id="affiliate-input" placeholder="e.g. https://amzn.to/xyz123" class="input input-bordered w-full border-black" />
+      </div>
+
+      <div class="form-control w-full mt-4">
+        <label class="label" for="tone-select">
+          <span class="label-text font-medium">Content Tone:</span>
+        </label>
+        <select id="tone-select" class="select select-bordered w-full border-black">
+          <option value="">Default</option>
+          <option value="fun">Fun</option>
+          <option value="influencer">Influencer</option>
+          <option value="clinical">Clinical</option>
+          <option value="snarky">Snarky</option>
+        </select>
+      </div>
+
+      <div class="form-control w-full mt-4">
+        <label class="label" for="template-select">
+          <span class="label-text font-medium">Content Template Type:</span>
+        </label>
+        <select id="template-select" class="select select-bordered w-full border-black">
+          <option value="original">Original (Full Content Output)</option>
+          <option value="drySkinList">Top 5 for Dry Skin</option>
+          <option value="routineExample">Routine Example</option>
+          <option value="productComparison">Product Comparison</option>
+          <option value="influencerCaption">Influencer Caption</option>
+          <option value="prosAndCons">Pros & Cons</option>
+          <option value="top5Under25">Top 5 Under $25</option>
+          <option value="whyISwitched">Why I Switched</option>
+          <option value="beginnerKit">Beginner Kit</option>
+          <option value="drugstoreDupe">Drugstore Dupe</option>
+          <option value="tiktokBreakdown">TikTok Breakdown</option>
+          <option value="surpriseMe">Surprise Me!</option>
+          <option value="demoScript">Demo Script</option>
+          <option value="personalReview">Personal Review</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary mt-6 w-full">Generate Content (Ctrl/Cmd + Enter)</button>
+    </form>
+
+    <!-- Batch Progress UI -->
+    <div id="batch-progress" class="hidden mb-6">
+      <div class="text-sm text-gray-700 mb-1">
+        Generating batch content... <span id="progress-count">0</span> / <span id="progress-total">0</span>
+      </div>
+      <progress id="progress-bar" class="progress progress-rose w-full h-4" value="0" max="100"></progress>
+    </div>
+
+    <div id="results-container" class="mt-8 hidden">
+      <div id="results" class="card bg-white p-6 shadow-sm">
+        <div class="prose max-w-none">
+          <div id="content-wrapper"></div>
+        </div>
+        <div class="text-center mt-6">
+          <button class="btn btn-outline" onclick="summarizeToVideoScript()">
+            🎬 Summarize as 60-sec Video Script
+          </button>
+        </div>
+        <div id="video-script-output" class="mt-4 text-left whitespace-pre-wrap text-sm hidden"></div>
+      </div>
+    </div>
+
+    <section class="text-center mb-12">
+      <h2 class="text-2xl md:text-3xl font-bold text-rose-700 mb-2 flex items-center justify-center gap-2">
+        📈 AI Trend Digest
+        <button onclick="loadTrendDigest()" class="text-sm text-rose-500 hover:text-rose-700 ml-2 flex items-center">
+          🔁 <span class="underline">Refresh</span>
+        </button>
+      </h2>
+      <div id="trend-digest-box" class="text-left max-w-2xl mx-auto mt-4"></div>
+    </section>
+
+    <footer class="bg-rose-50 p-6 mt-12 text-sm text-center">
+      <p class="text-gray-700">
+        <strong>Affiliate Disclosure</strong><br>
+        As an Amazon Associate, I earn from qualifying purchases. This site may contain affiliate links, which means I may earn a commission if you click a link and make a purchase at no extra cost to you.
+      </p>
+      <p class="mt-4 text-gray-700">
+        <strong>Contact</strong><br>
+        Email: <a href="mailto:sportsplaya11997@gmail.com" class="text-rose-700 hover:underline">sportsplaya11997@gmail.com</a>
+      </p>
+      <p class="mt-4 text-gray-700">
+        <a href="/privacy-policy.html" class="text-rose-700 hover:underline" target="_blank">Privacy Policy</a>
+      </p>
+      <p class="mt-4 text-gray-700">
+        <a href="/about.html" class="text-rose-700 hover:underline" target="_blank">About</a>
+      </p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

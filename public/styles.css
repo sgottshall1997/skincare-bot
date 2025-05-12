@@ -1,0 +1,140 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --primary: #0066ff;
+  --primary-dark: #0052cc;
+  --bg-light: #f8fafc;
+  --text: #1e293b;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-light);
+  color: var(--text);
+}
+
+.chat-bubble {
+  position: relative;
+  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+  background: white;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  margin-bottom: 1rem;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: slideUp 0.3s ease forwards;
+}
+
+.chat-bubble.ai {
+  background: #f1f5f9;
+  margin-left: 1rem;
+}
+
+.chat-bubble.user {
+  background: var(--primary);
+  color: white;
+  margin-right: 1rem;
+}
+
+.floating-label {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.floating-label input,
+.floating-label select {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: white;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.floating-label label {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  padding: 0 0.5rem;
+  color: #64748b;
+  transition: all 0.2s;
+  pointer-events: none;
+}
+
+.floating-label input:focus,
+.floating-label select:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 4px rgb(0 102 255 / 0.1);
+}
+
+.floating-label input:focus ~ label,
+.floating-label input:not(:placeholder-shown) ~ label,
+.floating-label select:focus ~ label {
+  top: 0;
+  font-size: 0.875rem;
+  color: var(--primary);
+}
+
+.typing-animation::after {
+  content: '▋';
+  animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+@keyframes slideUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.copy-btn {
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.copy-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+#results pre {
+  background: #f8fafc;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+  border: 1px solid #e2e8f0;
+}
