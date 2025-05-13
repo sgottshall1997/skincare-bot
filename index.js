@@ -234,13 +234,17 @@ app.get('/scraper-health', async (req, res) => {
     statuses.google = '❌ Error';
   }
 
-  // Check YouTube
+  // Check YouTube with caching
   try {
-    const { getYouTubeTrending } = require('./scrapers/youtubeScraper');
-    const youtubeData = await getYouTubeTrending();
-    statuses.youtube = youtubeData && youtubeData.length > 0 ? 
-      '✅ Active' : 
-      '⚠️ API Error - Check YouTube API Key';
+    if (!global.youtubeHealthCache || Date.now() - global.youtubeHealthLastCheck > 5 * 60 * 1000) {
+      const { getYouTubeTrending } = require('./scrapers/youtubeScraper');
+      const youtubeData = await getYouTubeTrending();
+      global.youtubeHealthCache = youtubeData && youtubeData.length > 0 ? 
+        '✅ Active' : 
+        '⚠️ API Error - Check YouTube API Key';
+      global.youtubeHealthLastCheck = Date.now();
+    }
+    statuses.youtube = global.youtubeHealthCache;
   } catch (err) {
     console.error('YouTube health check error:', err);
     statuses.youtube = '❌ Error';
