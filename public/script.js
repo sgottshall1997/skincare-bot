@@ -8,76 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-function loadTrendDigest() {
-  if (!trendDigestBox) return;
-  trendDigestBox.innerHTML = "Loading AI Trend Digest...";
-
-  fetch('/trend-digest')
-    .then(res => res.json())
-    .then(data => {
-      if (!data.viralHooks || !data.videoScript || !data.creatorInsight) {
-        trendDigestBox.innerHTML = '<p class="text-gray-500">No trend digest available.</p>';
-        return;
-      }
-
-      trendDigestBox.innerHTML = `
-        <div class="space-y-6">
-          <div class="bg-white p-4 rounded-lg shadow-sm">
-            <h3 class="font-bold text-rose-700 mb-2">🎯 Viral Hook Ideas</h3>
-            <ul class="list-disc pl-5 space-y-1 text-gray-700">
-              ${data.viralHooks.map(item => `<li>${item}</li>`).join('')}
-            </ul>
-          </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm">
-            <h3 class="font-bold text-rose-700 mb-2">📝 Video Script Outline</h3>
-            <ul class="list-disc pl-5 space-y-1 text-gray-700">
-              ${data.videoScript.map(line => `<li>${line}</li>`).join('')}
-            </ul>
-          </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm">
-            <h3 class="font-bold text-rose-700 mb-2">💡 Creator Insight</h3>
-            <p class="text-gray-700">${data.creatorInsight}</p>
-          </div>
-        </div>
-      `;
-    })
-    .catch((err) => {
-      console.error('Trend Digest Error:', err);
-      trendDigestBox.innerHTML = "❌ Failed to load AI Trend Digest. Check console for details.";
-    });
-}
-
-// Corrected scraper health updater
-function updateScraperHealth() {
-  fetch('/scraper-health')
-    .then(res => res.json())
-    .then(data => {
-      console.log('Scraper Health Status:', data);
-      const container = document.getElementById('scraper-health');
-      if (container) {
-        container.innerHTML = `
-          <div class="mt-4 text-left text-sm leading-6">
-            <strong class="block mb-1">🧠 Scraper Health</strong>
-            <ul class="list-disc list-inside text-gray-700 space-y-1">
-              <li>tiktok: ${data.tiktok || 'N/A'}</li>
-              <li>instagram: ${data.instagram || 'N/A'}</li>
-              <li>reddit: ${data.reddit || 'N/A'}</li>
-              <li>google: ${data.google || 'N/A'}</li>
-              <li>youtube: ${data.youtube || 'N/A'}</li>
-              <li>amazon: ${data.amazon || 'N/A'}</li>
-            </ul>
-          </div>
-        `;
-      }
-    })
-    .catch(err => {
-      console.error('❌ Failed to load scraper health:', err);
-    });
-}
-
-// Start checking scraper health
-updateScraperHealth();
-
 function loadTrendingProducts() {
   trendingContainer.innerHTML = `
     <div class="bg-white p-4 rounded-lg shadow-sm w-full">
@@ -90,29 +20,31 @@ function loadTrendingProducts() {
   fetch('/dynamic-trending')
     .then(res => res.json())
     .then(data => {
-      console.log('🧪 Trending data:', data.products); // ✅ Log what's coming in
-
+      console.log('🧪 Trending data:', data.products);
       trendingContainer.innerHTML = '';
+
       (data.products || []).forEach(product => {
-        const title =
-          typeof product === 'string'
-            ? product
-            : product.title || product.caption || product.name || product.product || JSON.stringify(product);
+        let title;
 
-        const link = product.link;
+        // Handle string format and object format
+        if (typeof product === 'string') {
+          title = product;
+        } else if (typeof product === 'object') {
+          title = product.title || product.caption || product.name || product.product || null;
+        }
 
-        const element = document.createElement(link ? 'a' : 'button');
+        if (!title) {
+          console.warn('⚠️ Skipped invalid product:', product);
+          return;
+        }
+
+        const element = document.createElement('button');
         element.className = 'px-4 py-2 rounded-full bg-blue-50 text-blue-800 hover:bg-blue-100 transition-colors text-sm whitespace-nowrap m-1';
 
-        if (link) {
-          element.href = link;
-          element.target = '_blank';
-        } else {
-          element.onclick = () => {
-            document.getElementById('product-input').value = title;
-            window.scrollTo({ top: document.getElementById('product-form').offsetTop, behavior: 'smooth' });
-          };
-        }
+        element.onclick = () => {
+          document.getElementById('product-input').value = title;
+          window.scrollTo({ top: document.getElementById('product-form').offsetTop, behavior: 'smooth' });
+        };
 
         element.textContent = title;
         trendingContainer.appendChild(element);
@@ -126,8 +58,6 @@ function loadTrendingProducts() {
       trendingContainer.innerHTML = '<div class="alert alert-error">Failed to load trending products</div>';
     });
 }
-
-
 
 
 const form = document.getElementById('product-form');
@@ -218,11 +148,20 @@ form.addEventListener('submit', async (e) => {
   }
 });
 
+// ⏱️ Helper function to estimate video duration
+function estimateVideoDuration(text) {
+  const wordCount = text.trim().split(/\s+/).length;
+  return Math.ceil(wordCount / 2.5); // 2.5 words/sec
+}
+
+// 🔧 Patch displayResults to include estimated time
 function displayResults(data, { append = false } = {}) {
   const resultsDiv = document.getElementById('results');
   const wrapper = document.createElement('div');
   wrapper.id = "content-wrapper";
   wrapper.className = "space-y-6";
+
+  let totalText = '';
 
   if (data.result?.type === "original") {
     const sections = [
@@ -239,6 +178,7 @@ function displayResults(data, { append = false } = {}) {
 
     sections.forEach(({ id, title, content }) => {
       if (content) {
+        totalText += content + ' ';
         const div = document.createElement('div');
         div.className = 'bg-base-100 rounded-lg p-4 border';
         div.innerHTML = `
@@ -253,16 +193,7 @@ function displayResults(data, { append = false } = {}) {
         wrapper.appendChild(div);
       }
     });
-
-    wrapper.innerHTML += `
-      <div class="flex justify-center mt-6">
-        <button class="btn btn-primary" onclick="copyAll()">
-          📋 Copy All Content
-        </button>
-      </div>
-    `;
   } else {
-    // fallback for non-original templates
     const sections = [
       { id: 'intro', title: '✨ Introduction', content: data.result.intro },
       { id: 'content', title: '📝 Content', content: data.result.content },
@@ -271,6 +202,7 @@ function displayResults(data, { append = false } = {}) {
 
     sections.forEach(({ id, title, content }) => {
       if (content) {
+        totalText += content + ' ';
         const div = document.createElement('div');
         div.className = 'bg-base-100 rounded-lg p-4 border';
         div.innerHTML = `
@@ -285,20 +217,27 @@ function displayResults(data, { append = false } = {}) {
         wrapper.appendChild(div);
       }
     });
-
-    wrapper.innerHTML += `
-      <div class="flex justify-center mt-6">
-        <button class="btn btn-primary" onclick="copyAll()">
-          📋 Copy All Content
-        </button>
-      </div>
-    `;
   }
+
+  const estimatedTime = estimateVideoDuration(totalText);
+  const timeDiv = document.createElement('p');
+  timeDiv.className = 'text-center text-sm text-gray-500 italic mt-2';
+  timeDiv.textContent = `🎬 Estimated Video Length: ${estimatedTime} seconds`;
+  wrapper.appendChild(timeDiv);
+
+  wrapper.innerHTML += `
+    <div class="flex justify-center mt-6">
+      <button class="btn btn-primary" onclick="copyAll()">
+        📋 Copy All Content
+      </button>
+    </div>
+  `;
 
   if (!append) resultsDiv.innerHTML = '';
   resultsDiv.appendChild(wrapper);
   document.getElementById('results-container').style.display = 'block';
 }
+
 
 function copyToClipboard(id) {
   const text = document.getElementById(id).innerText;

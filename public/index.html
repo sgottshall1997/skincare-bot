@@ -65,23 +65,33 @@
         <label class="label" for="template-select">
           <span class="label-text font-medium">Content Template Type:</span>
         </label>
-        <select id="template-select" class="select select-bordered w-full border-black">
-          <option value="original">Original (Full Content Output)</option>
-          <option value="drySkinList">Top 5 for Dry Skin</option>
-          <option value="routineExample">Routine Example</option>
-          <option value="productComparison">Product Comparison</option>
-          <option value="influencerCaption">Influencer Caption</option>
-          <option value="prosAndCons">Pros & Cons</option>
-          <option value="top5Under25">Top 5 Under $25</option>
-          <option value="whyISwitched">Why I Switched</option>
-          <option value="beginnerKit">Beginner Kit</option>
-          <option value="drugstoreDupe">Drugstore Dupe</option>
-          <option value="tiktokBreakdown">TikTok Breakdown</option>
-          <option value="surpriseMe">Surprise Me!</option>
-          <option value="demoScript">Demo Script</option>
-          <option value="personalReview">Personal Review</option>
-        </select>
-      </div>
+       <div class="form-control w-full mt-4">
+  <label class="label" for="template-select">
+    <span class="label-text font-medium">Content Template Type:</span>
+  </label>
+  <select id="template-select" class="select select-bordered w-full border-black">
+    <optgroup label="🛒 Amazon Product Focused">
+      <option value="original">Original (Full Content Output)</option>
+      <option value="drySkinList">Top 5 for Skin Type</option>
+      <option value="routineExample">Routine Example</option>
+      <option value="productComparison">Product Comparison</option>
+      <option value="influencerCaption">Influencer Caption</option>
+      <option value="personalReview">Personal Review</option>
+      <option value="demoScript">Demo Script</option>
+      <option value="prosAndCons">Pros & Cons</option>
+      <option value="whyISwitched">Why I Switched</option>
+    </optgroup>
+    <optgroup label="💡 General / Trend-Based">
+      <option value="top5Under25">Top 5 Under $25</option>
+      <option value="beginnerKit">Beginner Kit</option>
+      <option value="drugstoreDupe">Drugstore Dupe</option>
+      <option value="tiktokBreakdown">TikTok Breakdown</option>
+      <option value="surpriseMe">Surprise Me!</option>
+      <option value="aiDigest">AI Trend Digest</option>
+    </optgroup>
+  </select>
+</div>
+
 
       <button type="submit" class="btn btn-primary mt-6 w-full">Generate Content (Ctrl/Cmd + Enter)</button>
     </form>
