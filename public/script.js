@@ -5,6 +5,7 @@ const trendDigestBox = document.getElementById('trend-digest-box');
 document.addEventListener('DOMContentLoaded', () => {
   loadTrendingProducts();
   loadTrendDigest();
+  updateScraperHealth(); // Call once on page load
 });
 
 console.log('🔥 Fetching from /dynamic-trending...');
@@ -51,7 +52,6 @@ function loadTrendingProducts() {
       });
 
       loadTrendDigest();
-      updateScraperHealth();
     })
     .catch(err => {
       console.error('❌ Failed to load trending products:', err.message || err);
