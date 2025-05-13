@@ -37,7 +37,7 @@ function loadTrendingProducts() {
           console.warn('⚠️ Skipped invalid product:', product);
           return;
         }
-
+  
         const element = document.createElement('button');
         element.className = 'px-4 py-2 rounded-full bg-blue-50 text-blue-800 hover:bg-blue-100 transition-colors text-sm whitespace-nowrap m-1';
 
