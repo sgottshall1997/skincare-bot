@@ -52,29 +52,34 @@ function updateScraperHealth() {
   fetch('/scraper-health')
     .then(res => res.json())
     .then(data => {
+      console.log('Scraper Health Status:', data);
       const container = document.getElementById('scraper-health');
-      if (!container) return;
-
-      container.innerHTML = `
-        <div class="mt-4 text-left text-sm leading-6">
-          <strong class="block mb-1">🧠 Scraper Health</strong>
-          <ul class="list-disc list-inside text-gray-700 space-y-1">
-            <li>tiktok: ${data.tiktok || 'N/A'}</li>
-            <li>instagram: ${data.instagram || 'N/A'}</li>
-            <li>reddit: ${data.reddit || 'N/A'}</li>
-            <li>google: ${data.google || 'N/A'}</li>
-            <li>youtube: ${data.youtube || 'N/A'}</li>
-          </ul>
-        </div>
-      `;
+      if (container) {
+        container.innerHTML = `
+          <div class="mt-4 text-left text-sm leading-6">
+            <strong class="block mb-1">🧠 Scraper Health</strong>
+            <ul class="list-disc list-inside text-gray-700 space-y-1">
+              <li>tiktok: ${data.tiktok || 'N/A'}</li>
+              <li>instagram: ${data.instagram || 'N/A'}</li>
+              <li>reddit: ${data.reddit || 'N/A'}</li>
+              <li>google: ${data.google || 'N/A'}</li>
+              <li>youtube: ${data.youtube || 'N/A'}</li>
+            </ul>
+          </div>
+        `;
+      }
+      // Schedule next update
+      setTimeout(updateScraperHealth, 5000);
     })
     .catch(err => {
       console.error('❌ Failed to load scraper health:', err);
+      // Retry on error after delay
+      setTimeout(updateScraperHealth, 5000);
     });
 }
 
-// Run once after 3 seconds
-setTimeout(updateScraperHealth, 3000);
+// Start checking scraper health
+updateScraperHealth();
 
 
 function loadTrendingProducts() {
