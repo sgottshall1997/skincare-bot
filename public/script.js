@@ -49,15 +49,20 @@ function loadTrendDigest() {
 
 
 function updateScraperHealth() {
-  setTimeout(() => {
-    fetch('/scraper-health')
-      .then(res => res.json())
-      .then(statuses => {
-        console.log('Scraper Health Status:', statuses);
-  }, 5000); // Add 5 second delay between checks
-
+  fetch('/scraper-health')
+    .then(res => res.json())
+    .then(statuses => {
+      console.log('Scraper Health Status:', statuses);
+      
       // Update UI only if admin mode is enabled
       const urlParams = new URLSearchParams(window.location.search);
+      
+      setTimeout(updateScraperHealth, 5000); // Schedule next update
+    })
+    .catch(err => {
+      console.error('Health check error:', err);
+      setTimeout(updateScraperHealth, 5000); // Retry on error
+    });
       const isAdmin = urlParams.get('admin') === 'true';
 
       if (isAdmin) {
