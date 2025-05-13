@@ -38,7 +38,7 @@ function loadTrendingProducts() {
           console.warn('⚠️ Skipped invalid product:', product);
           return;
         }
-  
+
         const element = document.createElement('button');
         element.className = 'px-4 py-2 rounded-full bg-blue-50 text-blue-800 hover:bg-blue-100 transition-colors text-sm whitespace-nowrap m-1';
 
@@ -63,12 +63,15 @@ async function updateScraperHealth() {
   const healthContainer = document.getElementById('scraper-health');
   if (!healthContainer) return;
 
-  
   try {
     const res = await fetch('/scraper-health');
     const statuses = await res.json();
-    
-    console.log('Scraper Health Status:', statuses);
+
+    // Log only on first load
+    if (!window.hasLoggedScraperHealth) {
+      console.log('Scraper Health Status:', statuses);
+      window.hasLoggedScraperHealth = true;
+    }
 
     healthContainer.innerHTML = Object.entries(statuses)
       .map(([scraper, status]) => `
