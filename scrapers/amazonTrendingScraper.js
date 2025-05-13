@@ -17,8 +17,8 @@ async function getAmazonTrending() {
     $('div.zg-grid-general-faceout').each((i, el) => {
       if (i < 5) {
         const title =
-          $(el).find('.p13n-sc-truncate-desktop-type2').text().trim() ||
-          $(el).find('.p13n-sc-truncated').text().trim();
+          $(el).find('._cDEzb_p13n-sc-css-line-clamp-3_g3dy1').text().trim() ||
+          $(el).find('._cDEzb_p13n-sc-css-line-clamp-2_EWgCb').text().trim();
         const link = 'https://www.amazon.com' + $(el).find('a.a-link-normal').attr('href');
         products.push({ title, link });
       }

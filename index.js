@@ -277,6 +277,7 @@ app.get('/scraper-health', async (req, res) => {
   // Check Reddit
   try {
     const redditData = await getRedditTrending();
+    console.log('🔴 Reddit Scraper Output:', redditData); // ✅ LOG THIS
     if (redditData && redditData.length > 0) {
       const isScraperAPI = redditData.some(item => item.caption === 'Trending Reddit skincare discussion');
       statuses.reddit = isScraperAPI ? '✅ Active' : '✅ AI Generated';
@@ -284,7 +285,7 @@ app.get('/scraper-health', async (req, res) => {
       statuses.reddit = '⚠️ No Data';
     }
   } catch (err) {
-    console.error('Reddit health check error:', err);
+    console.error('❌ Reddit health check error:', err);
     statuses.reddit = '❌ Error';
   }
 
@@ -292,9 +293,10 @@ app.get('/scraper-health', async (req, res) => {
   try {
     const getGoogleTrends = require('./scrapers/googleTrendsScraper');
     const googleData = await getGoogleTrends();
+    console.log('🟢 Google Trends Output:', googleData); // ✅ LOG THIS
     statuses.google = googleData && googleData.length > 0 ? '✅ AI Generated' : '⚠️ No Data';
   } catch (err) {
-    console.error('Google Trends health check error:', err);
+    console.error('❌ Google Trends health check error:', err);
     statuses.google = '❌ Error';
   }
 
@@ -303,6 +305,7 @@ app.get('/scraper-health', async (req, res) => {
     if (!global.youtubeHealthCache || Date.now() - global.youtubeHealthLastCheck > 5 * 60 * 1000) {
       const { getYouTubeTrending } = require('./scrapers/youtubeScraper');
       const youtubeData = await getYouTubeTrending();
+      console.log('🔵 YouTube Scraper Output:', youtubeData); // ✅ LOG THIS
       global.youtubeHealthCache = youtubeData && youtubeData.length > 0 ? 
         '✅ Active' : 
         '⚠️ API Error - Check YouTube API Key';
@@ -310,7 +313,7 @@ app.get('/scraper-health', async (req, res) => {
     }
     statuses.youtube = global.youtubeHealthCache;
   } catch (err) {
-    console.error('YouTube health check error:', err);
+    console.error('❌ YouTube health check error:', err);
     statuses.youtube = '❌ Error';
   }
 
@@ -318,13 +321,15 @@ app.get('/scraper-health', async (req, res) => {
   try {
     const getAmazonTrending = require('./scrapers/amazonTrendingScraper');
     const amazonData = await getAmazonTrending();
+    console.log('🟠 Amazon Scraper Output:', amazonData); // ✅ LOG THIS
     statuses.amazon = amazonData && amazonData.length > 0 ? '✅ Active' : '⚠️ No Data';
   } catch (err) {
-    console.error('Amazon health check error:', err);
+    console.error('❌ Amazon health check error:', err);
     statuses.amazon = '❌ Error';
   }
 
   res.json(statuses);
+
 });
 
 

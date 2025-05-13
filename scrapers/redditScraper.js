@@ -1,77 +1,66 @@
-// 🔁 Hybrid Reddit Scraper with ScraperAPI + OpenAI fallback
 const axios = require('axios');
-const cheerio = require('cheerio');
-const OpenAI = require('openai');
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const qs = require('qs');
 
-const SCRAPER_API_KEY = process.env.SCRAPER_API_KEY;
-
-async function tryScraperAPI() {
-  const targetURL = 'https://www.reddit.com/r/SkincareAddiction/top/?t=day';
-  const scraperUrl = `http://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(targetURL)}`;
+const REDDIT_CLIENT_ID = process.env.REDDIT_CLIENT_ID;
+const REDDIT_SECRET = process.env.REDDIT_SECRET;
+const REDDIT_USER_AGENT = 'Glowbot Skincare by Then-Bodybuilder4539';
+async function getRedditAccessToken() {
+  const auth = Buffer.from(`${REDDIT_CLIENT_ID}:${REDDIT_SECRET}`).toString('base64');
 
   try {
-    const res = await axios.get(scraperUrl);
-    const $ = cheerio.load(res.data);
-    const posts = [];
-
-    $('h3').each((i, el) => {
-      if (i < 5) {
-        const title = $(el).text().trim();
-        if (title) posts.push({ title, link: '#', caption: 'Trending Reddit skincare discussion' });
-      }
-    });
-
-    if (posts.length) return posts;
-    throw new Error('No h3 tags found');
-  } catch (err) {
-    console.warn('⚠️ ScraperAPI Reddit failed:', err.message);
-    return null;
-  }
-}
-
-async function tryOpenAIFallback() {
-  try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a skincare trend analyst. Return a list of 5 trending Reddit skincare topics as JSON with this structure: [{ title, link, caption }]. Keep link values as "#" placeholders.'
+    const response = await axios.post(
+      'https://www.reddit.com/api/v1/access_token',
+      qs.stringify({
+        grant_type: 'password',
+        username: REDDIT_USERNAME,
+        password: REDDIT_PASSWORD,
+      }),
+      {
+        headers: {
+          Authorization: `Basic ${auth}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': REDDIT_USER_AGENT,
         },
-        {
-          role: 'user',
-          content: 'What are the latest trending skincare topics on Reddit?'
-        }
-      ],
-      temperature: 0.7
-    });
+      }
+    );
 
-    const raw = completion.choices[0].message.content.trim();
-    const jsonStart = raw.indexOf('[');
-    const json = raw.slice(jsonStart);
-    return JSON.parse(json);
-  } catch (err) {
-    console.warn('⚠️ OpenAI fallback failed:', err.message);
+    return response.data.access_token;
+  } catch (error) {
+    console.error('⚠️ Reddit Token Error:', error.response?.data || error.message);
     return null;
   }
 }
 
 async function getRedditTrending() {
-  const fromScraper = await tryScraperAPI();
-  if (fromScraper) return fromScraper;
+  const token = await getRedditAccessToken();
+  if (!token) {
+    throw new Error('Failed to obtain Reddit access token');
+  }
 
-  const fromAI = await tryOpenAIFallback();
-  if (fromAI) return fromAI;
+  try {
+    const response = await axios.get(
+      'https://oauth.reddit.com/r/SkincareAddiction/hot?limit=10',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'User-Agent': REDDIT_USER_AGENT,
+        },
+      }
+    );
 
-  // Final fallback
-  return [
-    { title: "The Truth About Retinol", link: "#", caption: "Reddit's skincare community debates retinol myths" },
-    { title: "Korean Skincare Dupes", link: "#", caption: "Affordable alternatives to popular K-beauty products" },
-    { title: "Sunscreen Showdown", link: "#", caption: "r/SkincareAddiction rates the best sunscreens" },
-    { title: "Tretinoin Journey", link: "#", caption: "Before and after: 6 months on tretinoin" },
-    { title: "Sensitive Skin Solutions", link: "#", caption: "Building a routine for reactive skin" }
-  ];
+    const posts = response.data.data.children;
+
+    return posts
+      .filter(p => p.data && !p.data.stickied)
+      .map(p => ({
+        title: p.data.title,
+        link: `https://reddit.com${p.data.permalink}`,
+        caption: 'Trending Reddit skincare discussion',
+      }));
+  } catch (err) {
+    console.error('⚠️ Reddit fetch error:', err.response?.data || err.message);
+    return [];
+  }
 }
 
 module.exports = { getRedditTrending };
