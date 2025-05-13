@@ -6,16 +6,10 @@ const MAX_RESULTS = 10;
 
 async function getYouTubeTrending() {
   try {
-    console.log('📺 YouTube Scraper: Initializing...');
-    console.log('Attempting YouTube API call with key:', YOUTUBE_API_KEY);
-
     const url = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&channelId=${CHANNEL_ID}&part=snippet,id&order=date&maxResults=${MAX_RESULTS}`;
 
     const response = await fetch(url);
     const data = await response.json();
-
-    // Log to verify content
-    console.log('📺 YouTube API returned:', data.items?.length, 'items');
 
     const videos = data.items
       .filter(item => item.id.kind === 'youtube#video')
