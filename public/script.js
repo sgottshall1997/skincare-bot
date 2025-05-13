@@ -66,6 +66,8 @@ async function updateScraperHealth() {
   try {
     const res = await fetch('/scraper-health');
     const statuses = await res.json();
+    
+    console.log('Scraper Health Status:', statuses);
 
     healthContainer.innerHTML = Object.entries(statuses)
       .map(([scraper, status]) => `
