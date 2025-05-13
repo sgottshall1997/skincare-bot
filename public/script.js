@@ -64,6 +64,7 @@ function updateScraperHealth() {
               <li>reddit: ${data.reddit || 'N/A'}</li>
               <li>google: ${data.google || 'N/A'}</li>
               <li>youtube: ${data.youtube || 'N/A'}</li>
+              <li>amazon: ${data.amazon || 'N/A'}</li>
             </ul>
           </div>
         `;

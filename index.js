@@ -305,6 +305,16 @@ app.get('/scraper-health', async (req, res) => {
     statuses.youtube = '❌ Error';
   }
 
+  // Check Amazon
+  try {
+    const getAmazonTrending = require('./scrapers/amazonTrendingScraper');
+    const amazonData = await getAmazonTrending();
+    statuses.amazon = amazonData && amazonData.length > 0 ? '✅ Active' : '⚠️ No Data';
+  } catch (err) {
+    console.error('Amazon health check error:', err);
+    statuses.amazon = '❌ Error';
+  }
+
   res.json(statuses);
 });
 
