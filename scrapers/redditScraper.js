@@ -3,6 +3,8 @@ const qs = require('qs');
 
 const REDDIT_CLIENT_ID = process.env.REDDIT_CLIENT_ID;
 const REDDIT_SECRET = process.env.REDDIT_SECRET;
+const REDDIT_USERNAME = process.env.REDDIT_USERNAME;
+const REDDIT_PASSWORD = process.env.REDDIT_PASSWORD;
 const REDDIT_USER_AGENT = 'Glowbot Skincare by Then-Bodybuilder4539';
 async function getRedditAccessToken() {
   const auth = Buffer.from(`${REDDIT_CLIENT_ID}:${REDDIT_SECRET}`).toString('base64');
