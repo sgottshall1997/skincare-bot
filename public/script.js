@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadTrendDigest();
 });
 
-
+console.log('🔥 Fetching from /dynamic-trending...');
 function loadTrendingProducts() {
   trendingContainer.innerHTML = `
     <div class="bg-white p-4 rounded-lg shadow-sm w-full">
@@ -54,8 +54,47 @@ function loadTrendingProducts() {
       updateScraperHealth();
     })
     .catch(err => {
-      console.error('❌ Failed to load trending products:', err);
+      console.error('❌ Failed to load trending products:', err.message || err);
       trendingContainer.innerHTML = '<div class="alert alert-error">Failed to load trending products</div>';
+    });
+}
+
+function loadTrendDigest() {
+  if (!trendDigestBox) return;
+  trendDigestBox.innerHTML = "Loading AI Trend Digest...";
+
+  fetch('/trend-digest')
+    .then(res => res.json())
+    .then(data => {
+      if (!data.viralHooks || !data.videoScript || !data.creatorInsight) {
+        trendDigestBox.innerHTML = '<p class="text-gray-500">No trend digest available.</p>';
+        return;
+      }
+
+      trendDigestBox.innerHTML = `
+        <div class="space-y-6">
+          <div class="bg-white p-4 rounded-lg shadow-sm">
+            <h3 class="font-bold text-rose-700 mb-2">🎯 Viral Hook Ideas</h3>
+            <ul class="list-disc pl-5 space-y-1 text-gray-700">
+              ${data.viralHooks.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="bg-white p-4 rounded-lg shadow-sm">
+            <h3 class="font-bold text-rose-700 mb-2">📝 Video Script Outline</h3>
+            <ul class="list-disc pl-5 space-y-1 text-gray-700">
+              ${data.videoScript.map(line => `<li>${line}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="bg-white p-4 rounded-lg shadow-sm">
+            <h3 class="font-bold text-rose-700 mb-2">💡 Creator Insight</h3>
+            <p class="text-gray-700">${data.creatorInsight}</p>
+          </div>
+        </div>
+      `;
+    })
+    .catch((err) => {
+      console.error('Trend Digest Error:', err);
+      trendDigestBox.innerHTML = "❌ Failed to load AI Trend Digest. Check console for details.";
     });
 }
 
