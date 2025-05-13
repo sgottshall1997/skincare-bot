@@ -302,7 +302,7 @@ app.get('/scraper-health', async (req, res) => {
   statuses.reddit = await getSourceStatus('🔴 Reddit', getRedditTrending);
   statuses.google = await getSourceStatus('🟢 Google Trends', require('./scrapers/googleTrendsScraper'));
   statuses.amazon = await getSourceStatus('🟠 Amazon', require('./scrapers/amazonTrendingScraper'));
-  statuses.youtube = await getSourceStatus('🔵 YouTube', require('./scrapers/youtubeScraper').getYouTubeTrending);on', require('./scrapers/amazonTrendingScraper'));
+  statuses.youtube = await getSourceStatus('🔵 YouTube', require('./scrapers/youtubeScraper').getYouTubeTrending);
 
   // YouTube (with caching)
   try {
