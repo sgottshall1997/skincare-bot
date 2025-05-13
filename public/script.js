@@ -49,10 +49,7 @@ function loadTrendDigest() {
 
 
 function updateScraperHealth() {
-  // Fetch scraper health less frequently
-  clearTimeout(window.healthCheckTimer);
-  window.healthCheckTimer = setTimeout(() => {
-    fetch('/scraper-health')
+  fetch('/scraper-health')
     .then(res => res.json())
     .then(statuses => {
       console.log('Scraper Health Status:', statuses);
