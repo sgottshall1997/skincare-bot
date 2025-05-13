@@ -69,13 +69,9 @@ function updateScraperHealth() {
           </div>
         `;
       }
-      // Schedule next update
-      setTimeout(updateScraperHealth, 5000);
     })
     .catch(err => {
       console.error('❌ Failed to load scraper health:', err);
-      // Retry on error after delay
-      setTimeout(updateScraperHealth, 5000);
     });
 }
 
