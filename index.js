@@ -273,7 +273,12 @@ app.get('/scraper-health', async (req, res) => {
   // Check Reddit
   try {
     const redditData = await getRedditTrending();
-    statuses.reddit = redditData && redditData.length > 0 ? '✅ AI Generated' : '⚠️ No Data';
+    if (redditData && redditData.length > 0) {
+      const isScraperAPI = redditData.some(item => item.caption === 'Trending Reddit skincare discussion');
+      statuses.reddit = isScraperAPI ? '✅ Active' : '✅ AI Generated';
+    } else {
+      statuses.reddit = '⚠️ No Data';
+    }
   } catch (err) {
     console.error('Reddit health check error:', err);
     statuses.reddit = '❌ Error';
