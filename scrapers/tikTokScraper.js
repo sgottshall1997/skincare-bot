@@ -1,4 +1,3 @@
-
 const axios = require('axios');
 const cheerio = require('cheerio');
 
@@ -6,7 +5,7 @@ const SCRAPER_API_KEY = process.env.SCRAPER_API_KEY;
 
 const hashtags = [
   'skincare',
-  'skincareroutine', 
+  'skincareroutine',
   'acnetips',
   'dryskin',
   'glowup',
@@ -26,40 +25,64 @@ async function getTikTokTrending() {
   }
 
   const hashtag = getRandomHashtag();
-  const targetURL = `https://www.tiktok.com/tag/${hashtag}`;
+  // Try TikTok discovery instead of hashtag for more reliable scraping
+  const targetURL = `https://www.tiktok.com/discover/${hashtag}`;
   const scraperUrl = `http://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(targetURL)}&render=true`;
 
-  try {
-    console.log(`🔍 Attempting to scrape TikTok hashtag: #${hashtag}`);
-    
-    const response = await axios.get(scraperUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36'
-      },
-      timeout: 30000
-    });
 
-    if (!response.data) {
+  try {
+    console.log(`🔍 Attempting to scrape TikTok discovery page: /discover/${hashtag}`);
+
+    const maxRetries = 3;
+    const timeout = 60000;
+    let attempt = 0;
+    let response;
+
+    while (attempt < maxRetries) {
+      try {
+        response = await axios.get(scraperUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36'
+          },
+          timeout: timeout
+        });
+
+        if (response.data) {
+          // Log raw HTML preview for debugging
+          console.log('📃 TikTok raw HTML preview:\n', response.data.slice(0, 500));
+          break;
+        }
+      } catch (err) {
+        attempt++;
+        if (attempt === maxRetries) throw err;
+        console.log(`⏳ Retry attempt ${attempt} for hashtag #${hashtag}`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+
+    if (!response?.data) {
       throw new Error('Empty response from scraper API');
     }
 
     const $ = cheerio.load(response.data);
     const posts = [];
 
-    // Try multiple selectors since TikTok's structure changes often
     const selectors = [
       'div[data-e2e="search-video-item"]',
       'div[data-e2e="video-item"]',
-      '.video-feed-item'
+      '.video-feed-item',
+      'div[data-e2e="browse-video-item"]' // added for discover
     ];
 
     for (const selector of selectors) {
       $(selector).each((i, el) => {
-        const title = $(el).find('a').attr('title') || 
-                     $(el).find('[data-e2e="video-desc"]').text() ||
-                     `Trending TikTok on #${hashtag}`;
+        const title =
+          $(el).find('a').attr('title') ||
+          $(el).find('[data-e2e="video-desc"]').text() ||
+          `Trending TikTok on #${hashtag}`;
+
         const link = $(el).find('a').attr('href');
-        
+
         if (link) {
           posts.push({
             title: title.trim(),

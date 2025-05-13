@@ -252,85 +252,62 @@ Respond with only the raw JSON object.`.trim();
 });
 
 
-// Scraper health check endpoint
 app.get('/scraper-health', async (req, res) => {
   const statuses = {};
 
-  // Check TikTok
-  try {
-    const tiktokData = await getTikTokTrending();
-    statuses.tiktok = tiktokData && tiktokData.length > 0 ? '✅ AI Generated' : '⚠️ No Data';
-  } catch (err) {
-    console.error('TikTok health check error:', err);
-    statuses.tiktok = '❌ Error';
-  }
+  async function checkSource(label, getDataFn) {
+    const start = Date.now();
+    try {
+      const data = await getDataFn();
+      const time = Date.now() - start;
+      const isAI = data?.some(item => item.caption?.includes('Simulated') || item.caption?.includes('AI'));
+      const count = data?.length || 0;
 
-  // Check Instagram
-  try {
-    const instaData = await getInstagramTrending();
-    statuses.instagram = instaData && instaData.length > 0 ? '✅ AI Generated' : '⚠️ No Data';
-  } catch (err) {
-    console.error('Instagram health check error:', err);
-    statuses.instagram = '❌ Error';
-  }
+      console.log(`${label} Scraper Output (${count} items, ${time}ms):`, data);
 
-  // Check Reddit
-  try {
-    const redditData = await getRedditTrending();
-    console.log('🔴 Reddit Scraper Output:', redditData); // ✅ LOG THIS
-    if (redditData && redditData.length > 0) {
-      const isScraperAPI = redditData.some(item => item.caption === 'Trending Reddit skincare discussion');
-      statuses.reddit = isScraperAPI ? '✅ Active' : '✅ AI Generated';
-    } else {
-      statuses.reddit = '⚠️ No Data';
+      if (!count) return `⚠️ No Data`;
+
+      const sourceType = isAI ? 'AI Generated' : 'Active';
+      return `✅ ${sourceType} (${count} items, ${time}ms)`;
+    } catch (err) {
+      console.error(`❌ ${label} health check error:`, err);
+      return '❌ Error';
     }
-  } catch (err) {
-    console.error('❌ Reddit health check error:', err);
-    statuses.reddit = '❌ Error';
   }
 
-  // Check Google Trends
-  try {
-    const getGoogleTrends = require('./scrapers/googleTrendsScraper');
-    const googleData = await getGoogleTrends();
-    console.log('🟢 Google Trends Output:', googleData); // ✅ LOG THIS
-    statuses.google = googleData && googleData.length > 0 ? '✅ AI Generated' : '⚠️ No Data';
-  } catch (err) {
-    console.error('❌ Google Trends health check error:', err);
-    statuses.google = '❌ Error';
-  }
+  statuses.tiktok = await checkSource('🎵 TikTok', getTikTokTrending);
+  statuses.instagram = await checkSource('📸 Instagram', getInstagramTrending);
+  statuses.reddit = await checkSource('🔴 Reddit', getRedditTrending);
+  statuses.google = await checkSource('🟢 Google Trends', require('./scrapers/googleTrendsScraper'));
+  statuses.amazon = await checkSource('🟠 Amazon', require('./scrapers/amazonTrendingScraper'));
 
-  // Check YouTube with caching
+  // YouTube (with caching)
   try {
     if (!global.youtubeHealthCache || Date.now() - global.youtubeHealthLastCheck > 5 * 60 * 1000) {
+      const start = Date.now();
       const { getYouTubeTrending } = require('./scrapers/youtubeScraper');
-      const youtubeData = await getYouTubeTrending();
-      console.log('🔵 YouTube Scraper Output:', youtubeData); // ✅ LOG THIS
-      global.youtubeHealthCache = youtubeData && youtubeData.length > 0 ? 
-        '✅ Active' : 
-        '⚠️ API Error - Check YouTube API Key';
+      const data = await getYouTubeTrending();
+      const time = Date.now() - start;
+      const isAI = data?.some(item => item.caption?.includes('Simulated') || item.caption?.includes('AI'));
+      const count = data?.length || 0;
+
+      console.log(`🔵 YouTube Scraper Output (${count} items, ${time}ms):`, data);
+
+      global.youtubeHealthCache = count > 0
+        ? `✅ ${isAI ? 'AI Generated' : 'Active'} (${count} items, ${time}ms)`
+        : '⚠️ No Data';
       global.youtubeHealthLastCheck = Date.now();
     }
+
     statuses.youtube = global.youtubeHealthCache;
   } catch (err) {
     console.error('❌ YouTube health check error:', err);
     statuses.youtube = '❌ Error';
   }
 
-  // Check Amazon
-  try {
-    const getAmazonTrending = require('./scrapers/amazonTrendingScraper');
-    const amazonData = await getAmazonTrending();
-    console.log('🟠 Amazon Scraper Output:', amazonData); // ✅ LOG THIS
-    statuses.amazon = amazonData && amazonData.length > 0 ? '✅ Active' : '⚠️ No Data';
-  } catch (err) {
-    console.error('❌ Amazon health check error:', err);
-    statuses.amazon = '❌ Error';
-  }
-
   res.json(statuses);
-
 });
+
 
 
 // Start server
