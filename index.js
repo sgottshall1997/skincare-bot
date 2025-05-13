@@ -57,7 +57,11 @@ app.get('/dynamic-trending', async (req, res) => {
       getGoogleTrends(),
       getAmazonTrending()
     ]);
-
+   
+    console.log('📥 Scraped Reddit Data:', reddit);
+    console.log('📥 Scraped YouTube Data:', youtube);
+ // optional if already present
+    
     const allTrends = [
       ...tiktok,
       ...reddit,
