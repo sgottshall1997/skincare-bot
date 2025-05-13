@@ -63,6 +63,7 @@ async function updateScraperHealth() {
   const healthContainer = document.getElementById('scraper-health');
   if (!healthContainer) return;
 
+  
   try {
     const res = await fetch('/scraper-health');
     const statuses = await res.json();
@@ -81,6 +82,37 @@ async function updateScraperHealth() {
     healthContainer.innerHTML = '<div class="alert alert-error">Failed to load scraper health</div>';
   }
 }
+
+// Corrected scraper health updater
+function updateScraperHealth() {
+  fetch('/scraper-health')
+    .then(res => res.json())
+    .then(data => {
+      console.log('Scraper Health Status:', data);
+      const container = document.getElementById('scraper-health');
+      if (container) {
+        container.innerHTML = `
+          <div class="mt-4 text-left text-sm leading-6">
+            <strong class="block mb-1">🧠 Scraper Health</strong>
+            <ul class="list-disc list-inside text-gray-700 space-y-1">
+              <li>tiktok: ${data.tiktok || 'N/A'}</li>
+              <li>instagram: ${data.instagram || 'N/A'}</li>
+              <li>reddit: ${data.reddit || 'N/A'}</li>
+              <li>google: ${data.google || 'N/A'}</li>
+              <li>youtube: ${data.youtube || 'N/A'}</li>
+              <li>amazon: ${data.amazon || 'N/A'}</li>
+            </ul>
+          </div>
+        `;
+      }
+    })
+    .catch(err => {
+      console.error('❌ Failed to load scraper health:', err);
+    });
+}
+
+// Start checking scraper health
+updateScraperHealth();
 
 async function loadTrendDigest() {
   if (!trendDigestBox) return;
