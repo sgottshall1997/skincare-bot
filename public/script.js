@@ -307,9 +307,15 @@ function copyToClipboard(id) {
 }
 
 function copyAll() {
-  const text = document.getElementById('results').innerText;
-  navigator.clipboard.writeText(text).then(() => {
-    showToast('success', 'Copied to clipboard!');
+  const preTags = document.querySelectorAll('#results pre');
+  let allText = '';
+
+  preTags.forEach(pre => {
+    allText += pre.innerText.trim() + '\n\n';
+  });
+
+  navigator.clipboard.writeText(allText.trim()).then(() => {
+    showToast('success', 'Copied all content!');
   });
 }
 

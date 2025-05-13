@@ -14,7 +14,7 @@ module.exports = async function generateProsAndCons(openai, product) {
 
   const [intro, content, outro] = await Promise.all([
     gptPrompt(`In 1–2 short sentences, introduce a pros and cons breakdown for "${product}". Keep it under 30 words.`),
-    gptPrompt(`List 3 pros and 3 cons of "${product}". Be concise but insightful, and maintain a balanced tone.`),
+    gptPrompt(`List 3 pros and 3 cons of "${product}". Be concise with 100 words or less, but insightful, and maintain a balanced tone.`),
     gptPrompt(`In 1 sentence, wrap up the pros and cons and recommend who should try "${product}". Keep it under 20 words.`)
   ]);
 

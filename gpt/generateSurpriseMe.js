@@ -14,7 +14,7 @@ module.exports = async function generateSurpriseMe(openai, product) {
 
   const [intro, content, outro] = await Promise.all([
     gptPrompt(`Write a playful, mysterious 30 words intro that teases a surprise piece of content about "${product}".`),
-    gptPrompt(`Generate a fun and unexpected 150 word or less piece of skincare content about "${product}". It could be a weird tip, a story, or a bold claim — surprise the reader in a positive way.`),
+    gptPrompt(`Generate a fun and unexpected 100 word or less piece of skincare content about "${product}". It could be a weird tip, a story, or a bold claim — surprise the reader in a positive way.`),
     gptPrompt(`End with a quirky or clever 20 word outro that makes the viewer smile or want to share the post.`)
   ]);
 

@@ -14,7 +14,7 @@ module.exports = async function generateRoutineExample(openai, product) {
 
   const [intro, content, outro] = await Promise.all([
     gptPrompt(`In 1–2 short sentences, introduce a simple skincare routine with "${product}". Keep it under 30 words.`),
-    gptPrompt(`Create a basic 4-step skincare routine (AM or PM) that includes "${product}". For each step, include the step name and a short note, e.g.,\n\n1. Cleanser – Gently removes dirt and oil.`),
+    gptPrompt(`Create a basic 4-step skincare routine in under 125 words (AM or PM) that includes "${product}". For each step, include the step name and a short note, e.g.,\n\n1. Cleanser – Gently removes dirt and oil.`),
     gptPrompt(`In 1 sentence, encourage consistency in the routine and remind viewers of long-term benefits. Keep it under 20 words.`)
   ]);
 

@@ -13,8 +13,8 @@ module.exports = async function generateProductComparison(openai, product) {
   }
 
   const [intro, content, outro] = await Promise.all([
-    gptPrompt(`In 1–2 short sentences, introduce a product comparison for "${product}". Keep it under 30 words and make it intriguing.`),
-    gptPrompt(`Compare "${product}" to a popular alternative in 150 words. Highlight differences in ingredients, performance, and price. Recommend who might prefer one over the other.`),
+    gptPrompt(`In 1–2 short sentences, introduce a product comparison for "${product}". Keep it under 20 words and make it intriguing.`),
+    gptPrompt(`Compare "${product}" to a popular alternative in 100 words. Highlight differences in ingredients, performance, and price. Recommend who might prefer one over the other.`),
     gptPrompt(`In 1 sentence, give a takeaway that helps the viewer decide if "${product}" is worth switching to. Keep it under 20 words.`)
   ]);
 
