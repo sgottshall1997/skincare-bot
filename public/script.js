@@ -47,41 +47,35 @@ function loadTrendDigest() {
     });
 }
 
-
+// Corrected scraper health updater
 function updateScraperHealth() {
-  setTimeout(() => {
-    fetch('/scraper-health')
-      .then(res => res.json())
-      .then(statuses => {
-        console.log('Scraper Health Status:', statuses);
-  }, 5000); // Add 5 second delay between checks
+  fetch('/scraper-health')
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById('scraper-health');
+      if (!container) return;
 
-      // Update UI only if admin mode is enabled
-      const urlParams = new URLSearchParams(window.location.search);
-      const isAdmin = urlParams.get('admin') === 'true';
-
-      if (isAdmin) {
-        const healthLog = document.getElementById('status-log');
-        if (healthLog) {
-          const summary = Object.entries(statuses)
-            .map(([name, status]) => `• ${name}: ${status}`)
-            .join('\n');
-          healthLog.innerText = summary;
-        }
-      }
-
-      // Always hide the scraper section if not admin
-      if (!isAdmin) {
-        const scraperSection = document.getElementById('scraper-status');
-        if (scraperSection) {
-          scraperSection.style.display = 'none';
-        }
-      }
+      container.innerHTML = `
+        <div class="mt-4 text-left text-sm leading-6">
+          <strong class="block mb-1">🧠 Scraper Health</strong>
+          <ul class="list-disc list-inside text-gray-700 space-y-1">
+            <li>tiktok: ${data.tiktok || 'N/A'}</li>
+            <li>instagram: ${data.instagram || 'N/A'}</li>
+            <li>reddit: ${data.reddit || 'N/A'}</li>
+            <li>google: ${data.google || 'N/A'}</li>
+            <li>youtube: ${data.youtube || 'N/A'}</li>
+          </ul>
+        </div>
+      `;
     })
     .catch(err => {
-      console.error('Failed to fetch scraper health:', err);
+      console.error('❌ Failed to load scraper health:', err);
     });
 }
+
+// Run once after 3 seconds
+setTimeout(updateScraperHealth, 3000);
+
 
 function loadTrendingProducts() {
   trendingContainer.innerHTML = `
