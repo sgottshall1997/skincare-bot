@@ -22,6 +22,8 @@ const generateTrendingProducts = require('./gpt/generateTrendingProducts');
 const { getTikTokTrending } = require('./scrapers/tikTokScraper');
 const { getRedditTrending } = require('./scrapers/redditScraper');
 const { getInstagramTrending } = require('./scrapers/instagramScraper');
+const getGoogleTrends = require('./scrapers/googleTrendsScraper');
+
 
 const app = express();
 app.use(express.json());
@@ -126,17 +128,19 @@ app.get('/', (req, res) => {
 
 app.get('/trend-digest', async (req, res) => {
   try {
-    const [tiktok, reddit, instagram, youtube] = await Promise.all([
+    const [tiktok, reddit, instagram, youtube, google] = await Promise.all([
       getTikTokTrending(),
       getRedditTrending(),
       getInstagramTrending(),
-      getYouTubeTrending()
+      getYouTubeTrending(),
+      getGoogleTrends()
     ]);
 
-    const combinedTrends = [...tiktok, ...reddit, ...instagram, ...youtube]
-      .map(item => `- ${item.title || item.caption || ''}`)
-      .slice(0, 12)
-      .join('\n');
+
+    const combinedTrends = [...tiktok, ...reddit, ...instagram, ...youtube, ...google]
+    .map(item => `- ${item.title || item.caption || ''}`)
+    .slice(0, 15) // increase to fit extra trends
+    .join('\n');
 
     const prompt = `
 You are an AI trained to generate content ideas for skincare creators based on social media trends.
@@ -222,7 +226,7 @@ app.get('/scraper-health', async (req, res) => {
 
   // Check Google Trends
   try {
-    const { getGoogleTrends } = require('./scrapers/googleTrendsScraper');
+    const getGoogleTrends = require('./scrapers/googleTrendsScraper');
     const googleData = await getGoogleTrends();
     statuses.google = googleData && googleData.length > 0 ? '✅ AI Generated' : '⚠️ No Data';
   } catch (err) {
@@ -298,3 +302,5 @@ app.post('/generate-all', async (req, res) => {
     res.status(500).json({ error: 'Batch generation failed' });
   }
 });
+
+console.log('✅ Server fully initialized');
