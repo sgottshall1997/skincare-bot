@@ -12,9 +12,9 @@ async function getYouTubeTrending() {
     const response = await fetch(url);
     const data = await response.json();
 
-    const videos = data.items
+    const videos = (data.items || [])
       .filter(item =>
-        item.snippet &&
+        item?.snippet?.title &&
         /skin|beauty|routine|glow|acne|hydration/i.test(item.snippet.title)
       )
       .map(item => ({
