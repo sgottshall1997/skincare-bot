@@ -59,7 +59,28 @@ function loadTrendingProducts() {
     });
 }
 
-function loadTrendDigest() {
+async function updateScraperHealth() {
+  const healthContainer = document.getElementById('scraper-health');
+  if (!healthContainer) return;
+
+  try {
+    const res = await fetch('/scraper-health');
+    const statuses = await res.json();
+
+    healthContainer.innerHTML = Object.entries(statuses)
+      .map(([scraper, status]) => `
+        <div class="flex items-center gap-2 p-2">
+          <span class="font-medium">${scraper}:</span>
+          <span>${status}</span>
+        </div>
+      `).join('');
+  } catch (err) {
+    console.error('❌ Failed to load scraper health:', err);
+    healthContainer.innerHTML = '<div class="alert alert-error">Failed to load scraper health</div>';
+  }
+}
+
+async function loadTrendDigest() {
   if (!trendDigestBox) return;
   trendDigestBox.innerHTML = "Loading AI Trend Digest...";
 
