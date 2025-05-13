@@ -275,11 +275,34 @@ app.get('/scraper-health', async (req, res) => {
     }
   }
 
-  statuses.tiktok = await checkSource('🎵 TikTok', getTikTokTrending);
-  statuses.instagram = await checkSource('📸 Instagram', getInstagramTrending);
-  statuses.reddit = await checkSource('🔴 Reddit', getRedditTrending);
-  statuses.google = await checkSource('🟢 Google Trends', require('./scrapers/googleTrendsScraper'));
-  statuses.amazon = await checkSource('🟠 Amazon', require('./scrapers/amazonTrendingScraper'));
+  async function getSourceStatus(label, getDataFn) {
+    const start = Date.now();
+    try {
+      const data = await getDataFn();
+      const time = Date.now() - start;
+      const count = data?.length || 0;
+      const isAI = 
+        label === '📸 Instagram' || 
+        (data?.some && data.some(item => 
+          item.caption?.includes('AI') || 
+          item.link === '#' || 
+          item.title?.includes('Fallback')
+        ));
+
+      if (!count) return '⚠️ No Data';
+      return `✅ ${isAI ? 'AI Generated' : 'Active'} (${count} items, ${time}ms)`;
+    } catch (err) {
+      console.error(`❌ ${label} health check error:`, err);
+      return '❌ Error';
+    }
+  }
+
+  statuses.tiktok = await getSourceStatus('🎵 TikTok', getTikTokTrending);
+  statuses.instagram = await getSourceStatus('📸 Instagram', getInstagramTrending);
+  statuses.reddit = await getSourceStatus('🔴 Reddit', getRedditTrending);
+  statuses.google = await getSourceStatus('🟢 Google Trends', require('./scrapers/googleTrendsScraper'));
+  statuses.amazon = await getSourceStatus('🟠 Amazon', require('./scrapers/amazonTrendingScraper'));
+  statuses.youtube = await getSourceStatus('🔵 YouTube', require('./scrapers/youtubeScraper').getYouTubeTrending);on', require('./scrapers/amazonTrendingScraper'));
 
   // YouTube (with caching)
   try {
