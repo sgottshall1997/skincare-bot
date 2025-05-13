@@ -81,7 +81,6 @@ function updateScraperHealth() {
 // Start checking scraper health
 updateScraperHealth();
 
-
 function loadTrendingProducts() {
   trendingContainer.innerHTML = `
     <div class="bg-white p-4 rounded-lg shadow-sm w-full">
@@ -90,19 +89,36 @@ function loadTrendingProducts() {
         <p class="text-sm text-base-content/70">This may take a few seconds</p>
       </div>
     </div>`;
+
   fetch('/dynamic-trending')
     .then(res => res.json())
     .then(data => {
+      console.log('🧪 Trending data:', data.products); // ✅ Log what's coming in
+
       trendingContainer.innerHTML = '';
       (data.products || []).forEach(product => {
-        const btn = document.createElement('button');
-        btn.className = 'px-4 py-2 rounded-full bg-blue-50 text-blue-800 hover:bg-blue-100 transition-colors text-sm whitespace-nowrap';
-        btn.innerText = product.title || product.caption || "Unnamed Product";
-        btn.onclick = () => {
-          document.getElementById('product-input').value = product.title || "";
-          window.scrollTo({ top: document.getElementById('product-form').offsetTop, behavior: 'smooth' });
-        };
-        trendingContainer.appendChild(btn);
+        const title =
+          typeof product === 'string'
+            ? product
+            : product.title || product.caption || product.name || product.product || JSON.stringify(product);
+
+        const link = product.link;
+
+        const element = document.createElement(link ? 'a' : 'button');
+        element.className = 'px-4 py-2 rounded-full bg-blue-50 text-blue-800 hover:bg-blue-100 transition-colors text-sm whitespace-nowrap m-1';
+
+        if (link) {
+          element.href = link;
+          element.target = '_blank';
+        } else {
+          element.onclick = () => {
+            document.getElementById('product-input').value = title;
+            window.scrollTo({ top: document.getElementById('product-form').offsetTop, behavior: 'smooth' });
+          };
+        }
+
+        element.textContent = title;
+        trendingContainer.appendChild(element);
       });
 
       loadTrendDigest();
@@ -113,6 +129,9 @@ function loadTrendingProducts() {
       trendingContainer.innerHTML = '<div class="alert alert-error">Failed to load trending products</div>';
     });
 }
+
+
+
 
 const form = document.getElementById('product-form');
 const resultsContainer = document.getElementById('results-container');

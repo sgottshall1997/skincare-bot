@@ -39,24 +39,73 @@ app.get('/youtube-trending', async (req, res) => {
   res.json({ videos: results });
 });
 
+const getAmazonTrending = require('./scrapers/amazonTrendingScraper');
+
+app.get('/amazon-trending', async (req, res) => {
+  const products = await getAmazonTrending();
+  res.json({ products });
+});
+
 // Route to handle dynamic trending products from TikTok, Reddit, Instagram, and Twitter
 app.get('/dynamic-trending', async (req, res) => {
   try {
-    // Get trending content from all platforms
-    const tiktokTrends = await getTikTokTrending();
-    const redditTrends = await getRedditTrending();
-    const instagramTrends = await getInstagramTrending();
+    const [tiktok, reddit, instagram, youtube, google, amazon] = await Promise.all([
+      getTikTokTrending(),
+      getRedditTrending(),
+      getInstagramTrending(),
+      getYouTubeTrending(),
+      getGoogleTrends(),
+      getAmazonTrending()
+    ]);
 
-    // Only use Instagram trends (products)
-    const trendingData = instagramTrends.map(item => ({ platform: 'Instagram', ...item }));
+    const allTrends = [
+      ...tiktok,
+      ...reddit,
+      ...instagram,
+      ...youtube,
+      ...google,
+      ...amazon
+    ];
 
-    // Send back combined trending data
-    res.json({ products: trendingData });
+    const allText = allTrends.map(t =>
+      typeof t === 'string' ? t : t.title || t.caption || t.name || JSON.stringify(t)
+    ).join('\n');
+
+    const prompt = `
+Here is a raw dump of trending skincare content:
+
+${allText}
+
+Your task is to extract **exactly 6** trending skincare products from this list. Format as a JSON array of product objects like this:
+
+[
+  { "title": "Product Name", "link": "https://example.com/product" },
+  ...
+]
+
+✅ Only include real product names (no hashtags or slogans).
+✅ If a link is missing, omit it. Do not guess.
+✅ Keep it clean and concise — no extra text outside the JSON.
+`.trim();
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.5
+    });
+
+    const gptReply = completion.choices?.[0]?.message?.content?.trim() || '[]';
+    const jsonStart = gptReply.indexOf('[');
+    const cleanedProducts = JSON.parse(gptReply.slice(jsonStart));
+
+    res.json({ products: cleanedProducts });
   } catch (err) {
-    console.warn('Error fetching trending data:', err);
-    res.json({ products: [] });  // Fallback to empty array if error occurs
+    console.error('❌ GPT-cleaned trending error:', err);
+    res.status(500).json({ products: [] });
   }
 });
+
+
 
 // Route to generate content
 app.post('/generate', async (req, res) => {
@@ -128,19 +177,25 @@ app.get('/', (req, res) => {
 
 app.get('/trend-digest', async (req, res) => {
   try {
-    const [tiktok, reddit, instagram, youtube, google] = await Promise.all([
+    const [tiktok, reddit, instagram, youtube, google, amazon] = await Promise.all([
       getTikTokTrending(),
       getRedditTrending(),
       getInstagramTrending(),
       getYouTubeTrending(),
-      getGoogleTrends()
+      getGoogleTrends(),
+      getAmazonTrending()
     ]);
 
-
-    const combinedTrends = [...tiktok, ...reddit, ...instagram, ...youtube, ...google]
-    .map(item => `- ${item.title || item.caption || ''}`)
-    .slice(0, 15) // increase to fit extra trends
-    .join('\n');
+    const combinedTrends = [
+      ...tiktok.map(item => `- TikTok: ${item}`),
+      ...reddit.map(item => `- Reddit: ${item}`),
+      ...instagram.map(item => `- Instagram: ${item.title || item.caption}`),
+      ...youtube.map(item => `- YouTube: ${item.title}`),
+      ...google.map(item => `- Google: ${item.title}`),
+      ...amazon.map(item => `- Amazon: ${item.title}`)
+    ]
+      .slice(0, 15)
+      .join('\n');
 
     const prompt = `
 You are an AI trained to generate content ideas for skincare creators based on social media trends.
